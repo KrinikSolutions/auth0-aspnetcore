@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IdentityModel.Tokens;
+using System.IO;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.AspNet.Builder;
@@ -46,8 +49,12 @@ namespace WebApiSample
 
             app.UseJwtBearerAuthentication(options =>
             {
-                options.Audience = settings.Value.ClientId;
+                //options.Audience = "CPltYBAfF8UkTiIWhMRsAvDA5PPAd3yD";//settings.Value.ClientId;
                 options.Authority = $"https://{settings.Value.Domain}";
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidAudiences = new List<string>() { settings.Value.ClientId, "SkwileAPI" }
+                };
                 options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = context =>
@@ -64,9 +71,19 @@ namespace WebApiSample
                         // OPTIONAL: you can read/modify the claims that are populated based on the JWT
                         // claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, claimsIdentity.FindFirst("name").Value));
 						return Task.FromResult(0);
-					}
+					},
+                    OnReceivedToken = context =>
+                    {
+                        return Task.FromResult(0);
+                    },
+                    OnReceivingToken = context =>
+                    {
+                         return Task.FromResult(0);
+                    }
+
                 };
             });
+            
             
             app.UseMvc(routes =>
             {
